@@ -1,0 +1,41 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "mynotes-flutter-d6abd",
+          "appId": "1:638039091182:android:8735c3dc62da0d82fd10ff",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "mynotes-flutter-d6abd",
+          "appId": "1:638039091182:ios:77af7828f4a43dfafd10ff",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "mynotes-flutter-d6abd",
+          "appId": "1:638039091182:ios:77af7828f4a43dfafd10ff",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "mynotes-flutter-d6abd",
+          "configurations": {
+            "android": "1:638039091182:android:8735c3dc62da0d82fd10ff",
+            "ios": "1:638039091182:ios:77af7828f4a43dfafd10ff",
+            "macos": "1:638039091182:ios:77af7828f4a43dfafd10ff",
+            "web": "1:638039091182:web:bd3388b4dd29416cfd10ff",
+            "windows": "1:638039091182:web:8a267ab403eccdc9fd10ff"
+          }
+        }
+      }
+    }
+  }
+}
