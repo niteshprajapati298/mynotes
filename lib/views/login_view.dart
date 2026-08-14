@@ -1,9 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:mynotes/firebase_options.dart';
-
-
+import 'package:mynotes/services/logger_service.dart';
 
 
 // Human language mein read karo:
@@ -41,19 +38,17 @@ import 'package:mynotes/firebase_options.dart';
 //  Jab ise screen par dikhana ho, createState() ko call karna
 //  aur main tujhe bataunga ki UI kaisi honi chahiye."
 class LoginView extends StatefulWidget {
-  
   const LoginView({super.key});
 
   @override
   State<LoginView> createState() => _LoginViewState();
 }
 
-
 // _LoginViewState ke andar login screen ka UI logic hai.
 //
 // initState() mein controllers banate hain, dispose() mein clean karte hain.
 class _LoginViewState extends State<LoginView> {
-   late final TextEditingController _email;
+  late final TextEditingController _email;
   late final TextEditingController _password;
 
   @override
@@ -69,10 +64,54 @@ class _LoginViewState extends State<LoginView> {
     _password.dispose();
     super.dispose();
   }
-  Widget build(BuildContext context){
+
+  @override
+  Widget build(BuildContext context) {
+    // build() method login screen ka widget tree banata hai.
+    // Yahan Scaffold ke andar app bar aur body define hue hain.
     return Scaffold(
       appBar: AppBar(
-        title: Text("Login")
+        title: const Text('Login'),
+      ),
+      body: Column(
+        children: [
+          TextField(
+            controller: _email,
+            decoration: const InputDecoration(hintText: 'Enter your email here'),
+          ),
+          TextField(
+            controller: _password,
+            decoration: const InputDecoration(
+              hintText: 'Enter your password here',
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              final email = _email.text.trim();
+              final password = _password.text.trim();
+              try {
+                final userCredential = await FirebaseAuth.instance
+                    .signInWithEmailAndPassword(email: email, password: password);
+                logger.i('Signed In Successfully: ${userCredential.user?.uid}');
+                logger.i("usercredential : $userCredential");
+                _email.clear();
+                _password.clear();
+      
+              } on FirebaseAuthException catch (e) {
+                logger.e(
+                  'FirebaseAuthException: code=${e.code}, message=${e.message}',
+                );
+              } catch (e, stack) {
+                logger.i('Unexpected error: $e');
+                logger.i(stack);
+              }
+            },
+            child: const Text('Login'),
+          ),
+          TextButton(onPressed: (){
+            Navigator.of(context).pushNamedAndRemoveUntil('/register/', (route)=> false);
+          }, child: Text("Not registered yet? Register here!"))
+        ],
       ),
     );
   }
