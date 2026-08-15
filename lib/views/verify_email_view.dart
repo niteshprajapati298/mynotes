@@ -12,15 +12,20 @@ class VerifyEmailView extends StatefulWidget {
 class _VerifyEmailViewState extends State<VerifyEmailView> {
   @override
   Widget build(BuildContext context) {
-   return Column(
-        children: [
-          Text("Please Verify your email address"),
-          TextButton(onPressed: () async { 
-             final user = FirebaseAuth.instance.currentUser;
-             await user?.sendEmailVerification();
-          }, child: const Text('Send Email Verification')),
-        ],
-      );
+   return Scaffold(
+    appBar: AppBar(
+      title: const Text('Verify Your Email'),
+    ),
+     body: Column(
+          children: [
+            Text("Please Verify Email"),
+            TextButton(onPressed: () async { 
+               final user = FirebaseAuth.instance.currentUser;
+               await user?.sendEmailVerification();
+            }, child: const Text('Send Email Verification')),
+          ],
+        ),
+   );
   }
 }
 // Human language mein read karo:

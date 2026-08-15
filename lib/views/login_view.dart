@@ -96,7 +96,13 @@ class _LoginViewState extends State<LoginView> {
                 logger.i("usercredential : $userCredential");
                 _email.clear();
                 _password.clear();
-      
+
+                if (!context.mounted) return;
+                final emailVerified = userCredential.user?.emailVerified ?? false;
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  emailVerified ? '/home/' : '/verifyEmail',
+                  (route) => false,
+                );
               } on FirebaseAuthException catch (e) {
                 logger.e(
                   'FirebaseAuthException: code=${e.code}, message=${e.message}',
