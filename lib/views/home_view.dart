@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:mynotes/constants/routes.dart';
 // import 'package:mynotes/views/login_view.dart';
 
 class HomeView extends StatefulWidget {
@@ -18,13 +19,18 @@ class _HomeViewState extends State<HomeView> {
       body: Column(
         children: [
           Text("You are Logged In"),
-          TextButton(onPressed: () async {
-            final user = FirebaseAuth.instance.currentUser;
-            if(user!=null){
+          TextButton(
+            onPressed: () async {
+              final user = FirebaseAuth.instance.currentUser;
+              if (user != null) {
                 FirebaseAuth.instance.signOut();
-                Navigator.of(context).pushNamedAndRemoveUntil('/login/', (route)=>false);
-            } 
-          }, child: Text("Click To Logout")),
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil(loginRoute, (route) => false);
+              }
+            },
+            child: Text("Click To Logout"),
+          ),
         ],
       ),
     );

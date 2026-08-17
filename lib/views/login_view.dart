@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mynotes/constants/routes.dart';
 import 'package:mynotes/services/logger_service.dart';
 
 
@@ -100,7 +101,7 @@ class _LoginViewState extends State<LoginView> {
                 if (!context.mounted) return;
                 final emailVerified = userCredential.user?.emailVerified ?? false;
                 Navigator.of(context).pushNamedAndRemoveUntil(
-                  emailVerified ? '/home/' : '/verifyEmail',
+                  emailVerified ? notesRoute : verifyEmailRoute,
                   (route) => false,
                 );
               } on FirebaseAuthException catch (e) {
@@ -115,7 +116,7 @@ class _LoginViewState extends State<LoginView> {
             child: const Text('Login'),
           ),
           TextButton(onPressed: (){
-            Navigator.of(context).pushNamedAndRemoveUntil('/register/', (route)=> false);
+            Navigator.of(context).pushNamedAndRemoveUntil(registerRoute, (route)=> false);
           }, child: Text("Not registered yet? Register here!"))
         ],
       ),
