@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mynotes/services/logger_service.dart';
 
-
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
 
@@ -37,12 +36,14 @@ class _RegisterViewState extends State<RegisterView> {
     // build() method sab se important hai: yeh widget tree return karta hai.
     // Scaffold mein AppBar aur body rakhe hain.
     return Scaffold(
-      appBar: AppBar(title: const Text('Register'),),
+      appBar: AppBar(title: const Text('Register')),
       body: Column(
         children: [
           TextField(
             controller: _email,
-            decoration: const InputDecoration(hintText: 'Enter your email here'),
+            decoration: const InputDecoration(
+              hintText: 'Enter your email here',
+            ),
           ),
           TextField(
             controller: _password,
@@ -54,7 +55,7 @@ class _RegisterViewState extends State<RegisterView> {
             onPressed: () async {
               final email = _email.text.trim();
               final password = _password.text.trim();
-      
+
               try {
                 final userCredential = await FirebaseAuth.instance
                     .createUserWithEmailAndPassword(
@@ -64,6 +65,10 @@ class _RegisterViewState extends State<RegisterView> {
                 _email.clear();
                 _password.clear();
                 logger.i('Register success: ${userCredential.user?.uid}');
+                if (!context.mounted) return;
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil('/verifyEmail/', (route) => false);
               } on FirebaseAuthException catch (e) {
                 logger.i(
                   'FirebaseAuthException: code=${e.code}, message=${e.message}',
@@ -79,10 +84,15 @@ class _RegisterViewState extends State<RegisterView> {
             },
             child: const Text('Register'),
           ),
-          
-          TextButton(onPressed: () {
-            Navigator.of(context).pushNamedAndRemoveUntil('/login/', (route)=>false);
-          }, child: const Text("Already have an account? Login Here"))
+
+          TextButton(
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil('/login/', (route) => false);
+            },
+            child: const Text("Already have an account? Login Here"),
+          ),
         ],
       ),
     );

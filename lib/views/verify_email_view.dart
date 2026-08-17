@@ -1,6 +1,6 @@
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mynotes/services/logger_service.dart';
 
 class VerifyEmailView extends StatefulWidget {
   const VerifyEmailView({super.key});
@@ -10,24 +10,68 @@ class VerifyEmailView extends StatefulWidget {
 }
 
 class _VerifyEmailViewState extends State<VerifyEmailView> {
+  Future<void> checkEmailVerification() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    await user.reload();
+
+    final updatedUser = FirebaseAuth.instance.currentUser;
+
+    if (updatedUser?.emailVerified == true) {
+      logger.i('Email is verified');
+
+      if (!context.mounted) return;
+
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil('/notes/', (route) => false);
+    } else {
+      logger.i('Email is NOT verified');
+
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email is not verified yet')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-   return Scaffold(
-    appBar: AppBar(
-      title: const Text('Verify Your Email'),
-    ),
-     body: Column(
-          children: [
-            Text("Please Verify Email"),
-            TextButton(onPressed: () async { 
-               final user = FirebaseAuth.instance.currentUser;
+    return Scaffold(
+      appBar: AppBar(title: const Text('Verify Your Email')),
+      body: Column(
+        children: [
+          Text("Please Verify Email"),
+          TextButton(
+            onPressed: () async {
+              final user = FirebaseAuth.instance.currentUser;
                await user?.sendEmailVerification();
-            }, child: const Text('Send Email Verification')),
-          ],
-        ),
-   );
+
+              logger.i('Verification email sent successfully');
+
+              if (!context.mounted) return;
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Verification email sent')),
+              );
+            },
+            child: const Text('Send Email Verification'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await checkEmailVerification();
+            },
+            child: const Text('I have verified my email'),
+          ),
+        ],
+      ),
+    );
   }
 }
+
 // Human language mein read karo:
 //
 // class RegisterView extends StatefulWidget {
