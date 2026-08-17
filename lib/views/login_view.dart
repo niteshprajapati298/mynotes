@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mynotes/constants/routes.dart';
 import 'package:mynotes/services/logger_service.dart';
-
+import 'package:mynotes/utilities/showErrorDialogue.dart';
 
 // Human language mein read karo:
 //
@@ -71,14 +71,14 @@ class _LoginViewState extends State<LoginView> {
     // build() method login screen ka widget tree banata hai.
     // Yahan Scaffold ke andar app bar aur body define hue hain.
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
+      appBar: AppBar(title: const Text('Login')),
       body: Column(
         children: [
           TextField(
             controller: _email,
-            decoration: const InputDecoration(hintText: 'Enter your email here'),
+            decoration: const InputDecoration(
+              hintText: 'Enter your email here',
+            ),
           ),
           TextField(
             controller: _password,
@@ -92,34 +92,50 @@ class _LoginViewState extends State<LoginView> {
               final password = _password.text.trim();
               try {
                 final userCredential = await FirebaseAuth.instance
-                    .signInWithEmailAndPassword(email: email, password: password);
+                    .signInWithEmailAndPassword(
+                      email: email,
+                      password: password,
+                    );
                 logger.i('Signed In Successfully: ${userCredential.user?.uid}');
                 logger.i("usercredential : $userCredential");
                 _email.clear();
                 _password.clear();
 
                 if (!context.mounted) return;
-                final emailVerified = userCredential.user?.emailVerified ?? false;
+                final emailVerified =
+                    userCredential.user?.emailVerified ?? false;
                 Navigator.of(context).pushNamedAndRemoveUntil(
                   emailVerified ? notesRoute : verifyEmailRoute,
                   (route) => false,
                 );
               } on FirebaseAuthException catch (e) {
-                logger.e(
-                  'FirebaseAuthException: code=${e.code}, message=${e.message}',
-                );
-              } catch (e, stack) {
-                logger.i('Unexpected error: $e');
-                logger.i(stack);
+                if (!context.mounted) return;
+
+                if (e.code == 'user-not-found') {
+                  await showErrorDialog(context, 'User Not Found');
+                } else if (e.code == 'wrong-password') {
+                  await showErrorDialog(context, 'Wrong Password');
+                } else if (e.code == 'invalid-credential') {
+                  await showErrorDialog(context, 'Invalid email or password');
+                }
+              } catch (e) {
+                showErrorDialog(context, e.toString());
               }
             },
             child: const Text('Login'),
           ),
-          TextButton(onPressed: (){
-            Navigator.of(context).pushNamedAndRemoveUntil(registerRoute, (route)=> false);
-          }, child: Text("Not registered yet? Register here!"))
+          TextButton(
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil(registerRoute, (route) => false);
+            },
+            child: Text("Not registered yet? Register here!"),
+          ),
         ],
       ),
     );
   }
 }
+
+
