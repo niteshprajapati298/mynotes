@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mynotes/constants/routes.dart';
+import 'package:mynotes/services/auth/auth_service.dart';
 import 'package:mynotes/services/logger_service.dart';
 
 class VerifyEmailView extends StatefulWidget {
@@ -12,29 +13,56 @@ class VerifyEmailView extends StatefulWidget {
 
 class _VerifyEmailViewState extends State<VerifyEmailView> {
   Future<void> checkEmailVerification() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = AuthService.firebase().currentUser;
 
-    if (user == null) return;
 
-    await user.reload();
+    if (user == null) {
+      logger.i('No current user found during verification check; redirecting to login');
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil(loginRoute, (route) => false);
+      return;
+    }
 
-    final updatedUser = FirebaseAuth.instance.currentUser;
+    try {
+      // `user` is an `AuthUser` wrapper and doesn't expose `reload()`.
+      // Use the provider to reload the underlying Firebase user, then
+      // read the updated `AuthUser` from the service.
+      await AuthService.firebase().reloadUser();
+      final updatedUser = AuthService.firebase().currentUser;
 
-    if (updatedUser?.emailVerified == true) {
-      logger.i('Email is verified');
+      if (updatedUser?.isEmailVerified == true) {
+        logger.i('Email is verified');
 
-      if (!context.mounted) return;
+        if (!mounted) return;
 
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil(notesRoute, (route) => false);
-    } else {
-      logger.i('Email is NOT verified');
+        Navigator.of(context).pushNamedAndRemoveUntil(notesRoute, (route) => false);
+        return;
+      }
 
-      if (!context.mounted) return;
-
+      logger.i('Email is NOT verified after reload');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Email is not verified yet')),
+      );
+    } on FirebaseAuthException catch (e) {
+      logger.i('FirebaseAuthException during verification check: ${e.code} ${e.message}');
+        if (e.code == 'user-not-found') {
+        // If the user was removed on the server, force sign-out and go to login.
+        await AuthService.firebase().logOut();
+          if (!mounted) return;
+          Navigator.of(context).pushNamedAndRemoveUntil(loginRoute, (route) => false);
+      } else {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: ${e.message ?? e.code}')),
+          );
+      }
+    } catch (e, st) {
+      logger.i('Unexpected error while checking verification: $e');
+      logger.i(st);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unexpected error: $e')),
       );
     }
   }
@@ -42,25 +70,21 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Verify Your Email')),
+      appBar: AppBar(
+        title: const Text('Verify Your Email'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              loginRoute,
+              (route) => false,
+            );
+          },
+        ),
+      ),
       body: Column(
         children: [
-          Text("Please Verify Email"),
-          TextButton(
-            onPressed: () async {
-              final user = FirebaseAuth.instance.currentUser;
-              await user?.sendEmailVerification();
-
-              logger.i('Verification email sent successfully');
-
-              if (!context.mounted) return;
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Verification email sent')),
-              );
-            },
-            child: const Text('Send Email Verification'),
-          ),
+          Text("Email Verification Sent! Verify Your Email"),
           TextButton(
             onPressed: () async {
               await checkEmailVerification();

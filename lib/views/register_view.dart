@@ -1,7 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mynotes/constants/routes.dart';
-import 'package:mynotes/services/logger_service.dart';
+import 'package:mynotes/services/auth/auth_exceptions.dart';
+import 'package:mynotes/services/auth/auth_service.dart';
+import 'package:mynotes/utilities/showErrorDialogue.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -56,31 +57,24 @@ class _RegisterViewState extends State<RegisterView> {
             onPressed: () async {
               final email = _email.text.trim();
               final password = _password.text.trim();
-
               try {
-                final userCredential = await FirebaseAuth.instance
-                    .createUserWithEmailAndPassword(
-                      email: email,
-                      password: password,
-                    );
-                _email.clear();
-                _password.clear();
-                logger.i('Register success: ${userCredential.user?.uid}');
-                if (!context.mounted) return;
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil(verifyEmailRoute, (route) => false);
-              } on FirebaseAuthException catch (e) {
-                logger.i(
-                  'FirebaseAuthException: code=${e.code}, message=${e.message}',
+                await AuthService.firebase().createUser(
+                  email: email,
+                  password: password,
                 );
+                await AuthService.firebase().sendEmailVerification();
                 _email.clear();
                 _password.clear();
-              } catch (e, stack) {
-                _email.clear();
-                _password.clear();
-                logger.i('Unexpected error: $e');
-                logger.i(stack);
+                if (!mounted) return;
+                Navigator.of(context).pushNamedAndRemoveUntil(verifyEmailRoute, (route) => false);
+              } on WeakPasswordAuthException {
+                await showErrorDialog(context, "Password is Weak");
+              } on InvalidCredentialsAuthException {
+                await showErrorDialog(context, "Invalid Email");
+              } on EmailAlreadyInUseAuthException {
+                await showErrorDialog(context, "Email Already In Use");
+              } on GenricAuthException {
+                await showErrorDialog(context, "Registeration Failed");
               }
             },
             child: const Text('Register'),
