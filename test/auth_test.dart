@@ -25,11 +25,20 @@ void main() {
     test(
       'Should be able initialize less then 2 seconds',
       () async {
-        await provider.initialize();
-        expect(provider.isInitialized, true);
+        // Use a fresh provider for timing so we don't call initialize twice
+        final provider2 = MockAuthProvider();
+        await provider2.initialize();
+        expect(provider2.isInitialized, true);
       },
       timeout: const Timeout(Duration(seconds: 2)),
     );
+    test('Cannot initialize twice', () async {
+      // provider was initialized earlier in the group; second init should throw
+      expect(
+        provider.initialize(),
+        throwsA(const TypeMatcher<AlreadyInitializedException>()),
+      );
+    });
     test('Create user should delegate to logIn function', () async {
       final badEmailUser = provider.createUser(
         email: 'foo@bar.com',
@@ -60,6 +69,14 @@ void main() {
       expect(user, isNotNull);
       expect(user!.isEmailVerified, true);
     });
+    test('reloadUser should not change verification state and should complete', () async {
+      // ensure user is verified
+      provider.sendEmailVerification();
+      await provider.reloadUser();
+      final user = provider.currentUser;
+      expect(user, isNotNull);
+      expect(user!.isEmailVerified, true);
+    });
     test('should be able to logout and login again', () async {
       await provider.logOut();
       await provider.logIn(email: 'email', password: 'password');
@@ -70,6 +87,7 @@ void main() {
 }
 
 class NotInitializedException implements Exception {}
+class AlreadyInitializedException implements Exception {}
 
 class MockAuthProvider implements AuthProvider {
   AuthUser? _user;
@@ -90,6 +108,7 @@ class MockAuthProvider implements AuthProvider {
 
   @override
   Future<void> initialize() async {
+    if (isInitialized) throw AlreadyInitializedException();
     await Future.delayed(const Duration(seconds: 1));
     _isInitialized = true;
   }
@@ -117,8 +136,9 @@ class MockAuthProvider implements AuthProvider {
 
   @override
   Future<void> reloadUser() {
-    // TODO: implement reloadUser
-    throw UnimplementedError();
+    if (!isInitialized) throw NotInitializedException();
+    if (_user == null) throw UserNotLoggedInAuthException();
+    return Future.delayed(const Duration(seconds: 1));
   }
 
   @override
