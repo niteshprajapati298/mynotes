@@ -3,6 +3,7 @@ import 'package:mynotes/constants/routes.dart';
 import 'package:mynotes/enums/menu_action.dart';
 import 'package:mynotes/services/auth/auth_service.dart';
 import 'package:mynotes/services/crud/notes_service.dart';
+import 'package:mynotes/services/logger_service.dart';
 // import 'package:mynotes/services/logger_service.dart';
 
 class NotesView extends StatefulWidget {
@@ -34,6 +35,12 @@ class _NotesViewState extends State<NotesView> {
       appBar: AppBar(
         title: const Text("Your Notes"),
         actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).pushNamed(newNoteRoute);
+            },
+            icon: const Icon(Icons.add),
+          ),
           PopupMenuButton<MenuAction>(
             onSelected: (value) async {
               switch (value) {
@@ -69,14 +76,14 @@ class _NotesViewState extends State<NotesView> {
             case ConnectionState.done:
               return StreamBuilder(
                 stream: _notesService.allNotes,
-                 builder: (context,snapshot) {
-                   switch (snapshot.connectionState) {
-                     case ConnectionState.waiting:
+                builder: (context, snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.waiting:
                       return Text('Waiting for all Notes');
-                      default: 
+                    default:
                       return CircularProgressIndicator();
-                   }
-                 }
+                  }
+                },
               );
             default:
               return const CircularProgressIndicator();
