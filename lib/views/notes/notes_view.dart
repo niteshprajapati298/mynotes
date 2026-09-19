@@ -4,8 +4,9 @@ import 'package:mynotes/enums/menu_action.dart';
 import 'package:mynotes/services/auth/auth_service.dart';
 import 'package:mynotes/services/crud/notes_service.dart';
 import 'package:mynotes/services/logger_service.dart';
+import 'package:mynotes/utilities/diaglog/delete_note_dialog.dart';
 import 'package:mynotes/utilities/diaglog/logout_dialog.dart';
-// import 'package:mynotes/services/logger_service.dart';
+import 'package:mynotes/views/notes/note_list_view.dart';
 
 class NotesView extends StatefulWidget {
   const NotesView({super.key});
@@ -23,10 +24,16 @@ class _NotesViewState extends State<NotesView> {
       await _notesService.deleteNote(id: id);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not delete note: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Could not delete note: $error')));
     }
+  }
+  Future<void> _confirmAndDeleteNote(int id) async {
+    final shouldDelete = await showDeleteDialog(context);
+    if (!shouldDelete || !mounted) return;
+
+    await _deleteNote(id);
   }
 
   @override
@@ -94,34 +101,10 @@ class _NotesViewState extends State<NotesView> {
                   if (allNotes.isEmpty) {
                     return const Center(child: Text('No notes yet'));
                   }
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(24),
-                    itemCount: allNotes.length,
-                    itemBuilder: (context, index) {
-                      final note = allNotes[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ListTile(
-                          leading: IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () async {
-                              logger.i("Delete Button Clicked");
-                              await _deleteNote(note.id);
-                            },
-                          ),
-                          title: Text(note.text),
-                          trailing: const Icon(Icons.chevron_right),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                        ),
-                      );
+                  return NotesListView(
+                    notes: allNotes,
+                    onDeleteNote: (note) async {
+                      await _confirmAndDeleteNote(note.id);
                     },
                   );
                 },

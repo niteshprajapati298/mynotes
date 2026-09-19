@@ -5,11 +5,11 @@ import 'package:sqflite/sqlite_api.dart';
 
 typedef DeleteNoteCallback = void Function(DatabaseNote note);
 
-class MyWidget extends StatelessWidget {
+class NotesListView extends StatelessWidget {
   final List<DatabaseNote> notes;
   final DeleteNoteCallback onDeleteNote;
 
-  const MyWidget({super.key, required this.notes, required this.onDeleteNote});
+  const NotesListView({super.key, required this.notes, required this.onDeleteNote});
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +40,7 @@ class MyWidget extends StatelessWidget {
               icon: const Icon(Icons.edit),
               tooltip: 'Edit note',
               onPressed: () {
+                print("Clicked Edit");
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => EditNoteView(noteId: note.id),
