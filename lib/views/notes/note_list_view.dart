@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mynotes/services/crud/notes_service.dart';
-import 'package:mynotes/views/notes/edit_note_view.dart';
-import 'package:sqflite/sqlite_api.dart';
+import 'package:mynotes/views/notes/create_update_note_view.dart';
 
 typedef DeleteNoteCallback = void Function(DatabaseNote note);
 
@@ -40,10 +39,11 @@ class NotesListView extends StatelessWidget {
               icon: const Icon(Icons.edit),
               tooltip: 'Edit note',
               onPressed: () {
-                print("Clicked Edit");
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => EditNoteView(noteId: note.id),
+                    builder: (_) => CreateUpdateNoteView(),
+                    settings: RouteSettings(arguments: note),
+
                   ),
                 );
               },
