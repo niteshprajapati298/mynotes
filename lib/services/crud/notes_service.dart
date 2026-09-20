@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:mynotes/services/crud/crud_expception.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'package:path_provider/path_provider.dart'
@@ -7,27 +8,11 @@ import 'package:path_provider/path_provider.dart'
 
 import 'package:path/path.dart' show join;
 
-class DatabaseAlreadyOpenException implements Exception {}
 
-class UnableToGetDocumentDirectory implements Exception {}
-
-class DatabaseIsNotOpen implements Exception {}
-
-class CouldNotDeleteUser implements Exception {}
-
-class UserAlreadyExists implements Exception {}
-
-class UserNotFoundInDatabase implements Exception {}
-
-class CouldNotFindUser implements Exception {}
-
-class CouldNotDeleteNote implements Exception {}
-
-class CouldNotFindNote implements Exception {}
 
 class NotesService {
   Database? _db;
-
+  Database? user;
   List<DatabaseNote> _notes = [];
   static final NotesService _shared = NotesService._sharedInstance();
 
